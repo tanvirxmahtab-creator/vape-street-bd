@@ -55,15 +55,16 @@ export default function App() {
     if (typeof window !== "undefined") {
       const verified = sessionStorage.getItem("vape_street_age_verified") === "true";
       setIsAgeVerified(verified);
-      setPathname(window.location.pathname);
+      setPathname(window.location.hash.replace("#", "") || "/");
     }
 
-    // Check initial admin auth state
-    const isAuth = typeof window !== "undefined" && sessionStorage.getItem("vape_street_admin_auth") === "true";
+    // Check initial admin auth state using token pattern
+    const token = typeof window !== "undefined" ? sessionStorage.getItem("vape_street_admin_auth") : null;
+    const isAuth = token ? token.startsWith("vst_") && token.length > 10 : false;
     setIsAdminAuth(isAuth);
 
     const handleLocationChange = async () => {
-      const currentPath = window.location.pathname;
+      const currentPath = window.location.hash.replace("#", "") || "/";
       setPathname(currentPath);
       scrollToTopInstant();
 
@@ -85,8 +86,8 @@ export default function App() {
 
     handleLocationChange();
 
-    window.addEventListener("popstate", handleLocationChange);
-    return () => window.removeEventListener("popstate", handleLocationChange);
+    window.addEventListener("hashchange", handleLocationChange);
+    return () => window.removeEventListener("hashchange", handleLocationChange);
   }, []);
 
   const handleLoginSuccess = () => {
@@ -100,42 +101,42 @@ export default function App() {
 
   const handleSelectProduct = (product: Product) => {
     setSelectedProduct(product);
-    window.history.pushState({}, "", `/product/${product.id}`);
+    window.location.hash = `/product/${product.id}`;
     setPathname(`/product/${product.id}`);
     scrollToTopInstant();
   };
 
   const handleNavigateHome = () => {
     setSelectedProduct(null);
-    window.history.pushState({}, "", "/");
+    window.location.hash = "/";
     setPathname("/");
     scrollToTopInstant();
   };
 
   const handleNavigateProducts = () => {
     setSelectedProduct(null);
-    window.history.pushState({}, "", "/all-products");
+    window.location.hash = "/all-products";
     setPathname("/all-products");
     scrollToTopInstant();
   };
 
   const handleNavigateContact = () => {
     setSelectedProduct(null);
-    window.history.pushState({}, "", "/contact");
+    window.location.hash = "/contact";
     setPathname("/contact");
     scrollToTopInstant();
   };
 
   const handleNavigateAbout = () => {
     setSelectedProduct(null);
-    window.history.pushState({}, "", "/about");
+    window.location.hash = "/about";
     setPathname("/about");
     scrollToTopInstant();
   };
 
   const handleNavigateAdmin = () => {
     setSelectedProduct(null);
-    window.history.pushState({}, "", "/admin");
+    window.location.hash = "/admin";
     setPathname("/admin");
     scrollToTopInstant();
   };

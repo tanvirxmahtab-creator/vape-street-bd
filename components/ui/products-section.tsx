@@ -323,8 +323,7 @@ const ProductsSection = ({ onSelectProduct }: { onSelectProduct?: (product: Prod
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           onClick={() => {
-            window.history.pushState({}, '', '/all-products');
-            window.dispatchEvent(new PopStateEvent('popstate'));
+            window.location.hash = "/all-products";
           }}
           className="group inline-flex items-center gap-3 rounded-full border border-primary/30 px-6 py-3 sm:px-8 sm:py-3.5 font-heading text-xs sm:text-sm font-bold uppercase tracking-widest text-primary transition-all duration-300 hover:bg-primary hover:text-black hover:shadow-[0_0_30px_rgba(197,168,128,0.25)] cursor-pointer"
         >

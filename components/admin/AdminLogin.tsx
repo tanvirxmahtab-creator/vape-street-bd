@@ -15,7 +15,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -23,24 +23,29 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
     const cleanUsername = username.trim().toLowerCase();
     const cleanPassword = password.trim();
 
-    setTimeout(() => {
-      // Robust credentials verification: user "admin", password "pallab72" (or common cases)
+    try {
+      const msgBuffer = new TextEncoder().encode(cleanPassword);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
       const isUserValid = cleanUsername === "admin" || cleanUsername === "pallab";
-      const isPassValid = 
-        cleanPassword === "pallab72" || 
-        cleanPassword.toLowerCase() === "pallab72" || 
-        cleanPassword === "admin" ||
-        cleanPassword === "admin123";
+      const isPassValid = hashHex === "4f434ecb07ecc5951409d43daac81a4893da947f1cb9b16c5d66bf72c17caa1d"; // hash of pallab72
 
       if (isUserValid && isPassValid) {
-        sessionStorage.setItem("vape_street_admin_auth", "true");
+        // Generate a pseudo-random token instead of simple "true"
+        const sessionToken = "vst_" + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+        sessionStorage.setItem("vape_street_admin_auth", sessionToken);
         localStorage.setItem("vape_street_admin_user", cleanUsername);
         onLoginSuccess();
       } else {
         setError("Invalid username or password. Please try again.");
-        setLoading(false);
       }
-    }, 300);
+    } catch (err) {
+      setError("Authentication error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -155,7 +160,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
         {/* Footer info */}
         <div className="mt-8 border-t border-glass pt-5 text-center">
           <a
-            href="/"
+            href="#/"
             className="text-xs text-accent/50 hover:text-primary transition-colors inline-flex items-center gap-1 font-medium"
           >
             ← Return to Storefront

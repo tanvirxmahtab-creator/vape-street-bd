@@ -42,8 +42,7 @@ export default function ContactUsPage({
     if (onBack) {
       onBack();
     } else {
-      window.history.pushState({}, "", "/");
-      window.dispatchEvent(new PopStateEvent("popstate"));
+      window.location.hash = "/";
     }
   };
 
@@ -51,8 +50,7 @@ export default function ContactUsPage({
     if (onNavigateProducts) {
       onNavigateProducts();
     } else {
-      window.history.pushState({}, "", "/all-products");
-      window.dispatchEvent(new PopStateEvent("popstate"));
+      window.location.hash = "/all-products";
     }
   };
 

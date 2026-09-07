@@ -79,7 +79,7 @@ const PrismaHero = ({
 
     for (let i = 1; i <= frameCount; i++) {
       const img = new Image();
-      img.src = `/scroll-frames/frame_${String(i).padStart(3, "0")}.webp`;
+      img.src = `./scroll-frames/frame_${String(i).padStart(3, "0")}.webp`;
       img.onload = () => {
         loadedCount++;
         if (loadedCount === frameCount) {
@@ -293,7 +293,7 @@ const PrismaHero = ({
       {/* Background Video (plays once, freezes at end) */}
       <motion.video
         ref={videoRef}
-        src="/hero.mp4"
+        src="./hero.mp4"
         animate={{ scale: isZoomed ? 1.15 : 1.02 }}
         transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
         className="absolute inset-0 h-full w-full object-cover z-0 pointer-events-none"

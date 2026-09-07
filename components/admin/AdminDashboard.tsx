@@ -308,8 +308,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             <button
               onClick={() => {
                 setIsVisualEditMode(true);
-                window.history.pushState({}, "", "/");
-                window.dispatchEvent(new PopStateEvent("popstate"));
+                window.location.hash = "#/";
               }}
               className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-xs font-black uppercase tracking-wider text-amber-400 hover:bg-amber-500 hover:text-black transition-all cursor-pointer shadow-[0_0_20px_rgba(245,158,11,0.2)]"
             >
@@ -318,7 +317,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             </button>
 
             <a
-              href="/"
+              href="#/"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 rounded-full border border-glass bg-[#141414] px-4 py-2 text-xs font-bold uppercase tracking-wider text-accent transition-colors hover:border-primary/40 hover:text-primary cursor-pointer"
@@ -346,8 +345,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           <button
             onClick={() => {
               setIsVisualEditMode(true);
-              window.history.pushState({}, "", "/");
-              window.dispatchEvent(new PopStateEvent("popstate"));
+              window.location.hash = "/";
             }}
             className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 via-[#C5A880] to-amber-500 px-6 py-3 text-xs font-black uppercase tracking-wider text-black shadow-[0_0_25px_rgba(197,168,128,0.4)] hover:scale-102 transition-all cursor-pointer"
           >
