@@ -83,7 +83,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     price: "",
     originalPrice: "",
     description: "",
-    images: ["/products/pod-system-demo.png", "/products/pod-device.png", "/products/starter-kit.png"],
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: "",
     rating: "4.8",
     battery: "1000mAh Fast Charge",
@@ -113,7 +113,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       price: "",
       originalPrice: "",
       description: "",
-      images: ["/products/pod-system-demo.png", "", ""],
+      images: ["/shop-logo.png", "", ""],
       badge: "",
       rating: "4.8",
       battery: "1000mAh Built-in Battery",
@@ -194,7 +194,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
     const validImages = formData.images.filter((img) => img.trim() !== "");
     if (validImages.length === 0) {
-      validImages.push("/products/pod-device.png");
+      validImages.push("/shop-logo.png");
     }
 
     const payload = {
@@ -246,8 +246,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     price: parseFloat(formData.price) || 3500,
     originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : null,
     description: formData.description || "Sample product description preview...",
-    image: validFormImages[0] || "/products/pod-device.png",
-    images: validFormImages.length > 0 ? validFormImages : ["/products/pod-device.png"],
+    image: validFormImages[0] || "/shop-logo.png",
+    images: validFormImages.length > 0 ? validFormImages : ["/shop-logo.png"],
     badge: formData.badge || null,
     rating: parseFloat(formData.rating) || 4.8,
     specs: {

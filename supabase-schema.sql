@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS public.products (
   original_price NUMERIC NULL,
   description TEXT,
   image TEXT NOT NULL,
+  images JSONB NULL,
+  specs JSONB NULL,
   badge TEXT NULL,
   rating NUMERIC DEFAULT 4.8
 );
@@ -38,7 +40,25 @@ CREATE POLICY "Allow public update to products"
 CREATE POLICY "Allow public delete to products" 
   ON public.products FOR DELETE USING (true);
 
--- 2. Create Storage Bucket for Product Images
+-- 2. Create Site Content Table
+CREATE TABLE IF NOT EXISTS public.site_content (
+  id TEXT PRIMARY KEY,
+  content JSONB NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.site_content ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow public read access to site_content" ON public.site_content;
+DROP POLICY IF EXISTS "Allow public upsert to site_content" ON public.site_content;
+
+CREATE POLICY "Allow public read access to site_content" 
+  ON public.site_content FOR SELECT USING (true);
+
+CREATE POLICY "Allow public upsert to site_content" 
+  ON public.site_content FOR ALL USING (true) WITH CHECK (true);
+
+-- 3. Create Storage Bucket for Product Images
 INSERT INTO storage.buckets (id, name, public) 
 VALUES ('product-images', 'product-images', true)
 ON CONFLICT (id) DO NOTHING;

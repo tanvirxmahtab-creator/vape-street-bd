@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { Product } from "@/components/ui/products-section";
+import { get, set, del } from "idb-keyval";
 
 const getEnvVar = (key: string): string => {
   if (typeof process !== "undefined" && process.env) {
@@ -38,8 +39,8 @@ export const initialSeedProducts: Product[] = [
     price: 3500,
     originalPrice: 4200,
     description: "Ultra-slim pod system with adjustable airflow and 800mAh battery. Perfect for salt nicotine.",
-    image: "/products/pod-system-demo.png",
-    images: ["/products/pod-system-demo.png", "/products/pod-device.png", "/products/starter-kit.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: "Best Seller",
     rating: 4.9,
   },
@@ -50,8 +51,8 @@ export const initialSeedProducts: Product[] = [
     price: 2800,
     originalPrice: 3200,
     description: "Compact draw-activated pod with magnetic cartridge system. Weighs only 30g.",
-    image: "/products/pod-device.png",
-    images: ["/products/pod-device.png", "/products/pod-system-demo.png", "/products/starter-kit.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: null,
     rating: 4.6,
   },
@@ -62,8 +63,8 @@ export const initialSeedProducts: Product[] = [
     price: 3200,
     originalPrice: 3800,
     description: "Premium aluminium alloy pod with side-fill system and 1000mAh fast-charge battery.",
-    image: "/products/pod-device.png",
-    images: ["/products/pod-device.png", "/products/pod-system-demo.png", "/products/box-mod.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: null,
     rating: 4.5,
   },
@@ -74,8 +75,8 @@ export const initialSeedProducts: Product[] = [
     price: 4100,
     originalPrice: 4800,
     description: "The ultimate pod: 1500mAh, smart wattage, OLED screen, and replaceable coil heads.",
-    image: "/products/pod-system-demo.png",
-    images: ["/products/pod-system-demo.png", "/products/pod-device.png", "/products/starter-kit.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: "Editor's Pick",
     rating: 4.9,
   },
@@ -88,8 +89,8 @@ export const initialSeedProducts: Product[] = [
     price: 1200,
     originalPrice: 1500,
     description: "A tropical blend of ripe mango, passionfruit, and a hint of cool menthol. 60ml bottle.",
-    image: "/products/eliquid-demo.png",
-    images: ["/products/eliquid-demo.png", "/products/eliquid-bottle.png", "/products/eliquid-demo.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: "Top Rated",
     rating: 4.8,
   },
@@ -100,8 +101,8 @@ export const initialSeedProducts: Product[] = [
     price: 1400,
     originalPrice: 1800,
     description: "Rich Virginia tobacco with caramel and vanilla notes. Smooth freebase, 60ml.",
-    image: "/products/eliquid-bottle.png",
-    images: ["/products/eliquid-bottle.png", "/products/eliquid-demo.png", "/products/eliquid-bottle.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: "Signature",
     rating: 4.9,
   },
@@ -112,8 +113,8 @@ export const initialSeedProducts: Product[] = [
     price: 1100,
     originalPrice: null,
     description: "Icy peppermint with eucalyptus undertones. An intense, refreshing all-day vape. 30ml.",
-    image: "/products/eliquid-demo.png",
-    images: ["/products/eliquid-demo.png", "/products/eliquid-bottle.png", "/products/eliquid-demo.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: null,
     rating: 4.4,
   },
@@ -124,8 +125,8 @@ export const initialSeedProducts: Product[] = [
     price: 1300,
     originalPrice: null,
     description: "Creamy vanilla custard layered with fresh blueberry compote. Dessert lovers' dream. 60ml.",
-    image: "/products/eliquid-bottle.png",
-    images: ["/products/eliquid-bottle.png", "/products/eliquid-demo.png", "/products/eliquid-bottle.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: null,
     rating: 4.6,
   },
@@ -138,8 +139,8 @@ export const initialSeedProducts: Product[] = [
     price: 8500,
     originalPrice: 10000,
     description: "220W dual-battery box mod with precision temperature control and OLED display.",
-    image: "/products/box-mod.png",
-    images: ["/products/box-mod.png", "/products/starter-kit.png", "/products/pod-system-demo.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: "Premium",
     rating: 4.8,
   },
@@ -150,8 +151,8 @@ export const initialSeedProducts: Product[] = [
     price: 7200,
     originalPrice: 8500,
     description: "Single 21700 battery mod with rapid 2A charging and IP68 dust/water resistance.",
-    image: "/products/box-mod.png",
-    images: ["/products/box-mod.png", "/products/starter-kit.png", "/products/pod-device.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: null,
     rating: 4.7,
   },
@@ -162,8 +163,8 @@ export const initialSeedProducts: Product[] = [
     price: 9500,
     originalPrice: 11500,
     description: "Flagship triple-battery beast with haptic feedback, wireless charging dock, and app control.",
-    image: "/products/box-mod.png",
-    images: ["/products/box-mod.png", "/products/starter-kit.png", "/products/box-mod.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: "Flagship",
     rating: 5.0,
   },
@@ -174,8 +175,8 @@ export const initialSeedProducts: Product[] = [
     price: 6000,
     originalPrice: 7000,
     description: "Palm-sized 80W mod with built-in 3000mAh battery. Sleek zinc alloy construction.",
-    image: "/products/box-mod.png",
-    images: ["/products/box-mod.png", "/products/pod-device.png", "/products/box-mod.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: null,
     rating: 4.5,
   },
@@ -188,8 +189,8 @@ export const initialSeedProducts: Product[] = [
     price: 800,
     originalPrice: null,
     description: "5000 puff disposable with mesh coil technology. Available in 12 flavors.",
-    image: "/products/disposable-vape.png",
-    images: ["/products/disposable-vape.png", "/products/pod-device.png", "/products/disposable-vape.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: null,
     rating: 4.5,
   },
@@ -200,8 +201,8 @@ export const initialSeedProducts: Product[] = [
     price: 900,
     originalPrice: 1100,
     description: "8000 puff rechargeable disposable with adjustable airflow slider. Grape ice flavor.",
-    image: "/products/disposable-vape.png",
-    images: ["/products/disposable-vape.png", "/products/pod-system-demo.png", "/products/disposable-vape.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: "Hot",
     rating: 4.8,
   },
@@ -212,8 +213,8 @@ export const initialSeedProducts: Product[] = [
     price: 750,
     originalPrice: null,
     description: "3000 puff floral-fruit fusion. Delicate lychee meets Bulgarian rose. Draw-activated.",
-    image: "/products/disposable-vape.png",
-    images: ["/products/disposable-vape.png", "/products/eliquid-demo.png", "/products/disposable-vape.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: null,
     rating: 4.3,
   },
@@ -224,8 +225,8 @@ export const initialSeedProducts: Product[] = [
     price: 850,
     originalPrice: 1000,
     description: "10000 puff mega disposable with LED puff counter and type-C recharging.",
-    image: "/products/disposable-vape.png",
-    images: ["/products/disposable-vape.png", "/products/pod-device.png", "/products/disposable-vape.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: "Mega",
     rating: 4.7,
   },
@@ -238,8 +239,8 @@ export const initialSeedProducts: Product[] = [
     price: 5500,
     originalPrice: 6800,
     description: "Everything you need to start: mod, tank, coils, USB-C charger, and carry case.",
-    image: "/products/starter-kit.png",
-    images: ["/products/starter-kit.png", "/products/box-mod.png", "/products/eliquid-demo.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: "New Arrival",
     rating: 4.9,
   },
@@ -250,8 +251,8 @@ export const initialSeedProducts: Product[] = [
     price: 6200,
     originalPrice: null,
     description: "Advanced sub-ohm starter kit with 5ml bubble glass tank and three coil options.",
-    image: "/products/starter-kit.png",
-    images: ["/products/starter-kit.png", "/products/box-mod.png", "/products/pod-system-demo.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: null,
     rating: 4.6,
   },
@@ -262,8 +263,8 @@ export const initialSeedProducts: Product[] = [
     price: 4800,
     originalPrice: 5500,
     description: "Direct-to-lung kit with massive airflow, top-fill tank, and pre-built mesh coils.",
-    image: "/products/starter-kit.png",
-    images: ["/products/starter-kit.png", "/products/box-mod.png", "/products/starter-kit.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: null,
     rating: 4.7,
   },
@@ -274,35 +275,38 @@ export const initialSeedProducts: Product[] = [
     price: 5200,
     originalPrice: 6500,
     description: "Premium mouth-to-lung kit with tight draw, ceramic coils, and precision airflow ring.",
-    image: "/products/starter-kit.png",
-    images: ["/products/starter-kit.png", "/products/pod-system-demo.png", "/products/starter-kit.png"],
+    image: "/shop-logo.png",
+    images: ["/shop-logo.png", "/shop-logo.png", "/shop-logo.png"],
     badge: "Staff Pick",
     rating: 4.8,
   },
 ];
 
 /* Helper to get local products */
-export const getLocalProducts = (): Product[] => {
+export const getLocalProducts = async (): Promise<Product[]> => {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return parsed.map((p: any) => ({
+    // Clear old localStorage if it exists to free up space
+    if (typeof window !== "undefined" && localStorage.getItem(STORAGE_KEY)) {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+    const saved = await get(STORAGE_KEY);
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      return saved.map((p: any) => ({
         ...p,
-        images: p.images && Array.isArray(p.images) && p.images.length > 0 ? p.images : [p.image || "/products/pod-device.png"],
+        images: p.images && Array.isArray(p.images) && p.images.length > 0 ? p.images : [p.image || "/shop-logo.png"],
       }));
     }
   } catch (e) {
     console.error("Failed to parse local products storage", e);
   }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(initialSeedProducts));
+  await set(STORAGE_KEY, initialSeedProducts);
   return initialSeedProducts;
 };
 
 /* Helper to save local products */
-export const saveLocalProducts = (products: Product[]) => {
+export const saveLocalProducts = async (products: Product[]) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+    await set(STORAGE_KEY, products);
   } catch (e) {
     console.error("Failed to save local products", e);
   }
@@ -319,7 +323,7 @@ export const fetchProducts = async (): Promise<Product[]> => {
 
       if (error) {
         console.warn("Supabase fetch error, falling back to local storage:", error.message);
-        return getLocalProducts();
+        return await getLocalProducts();
       }
 
       if (data && data.length > 0) {
@@ -332,7 +336,7 @@ export const fetchProducts = async (): Promise<Product[]> => {
             }
           }
           if (imgs.length === 0) {
-            imgs = [item.image || "/products/pod-device.png"];
+            imgs = [item.image || "/shop-logo.png"];
           }
 
           return {
@@ -342,14 +346,14 @@ export const fetchProducts = async (): Promise<Product[]> => {
             price: Number(item.price),
             originalPrice: item.original_price ? Number(item.original_price) : null,
             description: item.description || "",
-            image: imgs[0] || item.image || "/products/pod-device.png",
+            image: imgs[0] || item.image || "/shop-logo.png",
             images: imgs,
             badge: item.badge || null,
             rating: Number(item.rating || 4.5),
             specs: item.specs || undefined,
           };
         });
-        saveLocalProducts(formatted);
+        await saveLocalProducts(formatted);
         return formatted;
       }
     } catch (err) {
@@ -357,7 +361,7 @@ export const fetchProducts = async (): Promise<Product[]> => {
     }
   }
 
-  return getLocalProducts();
+  return await getLocalProducts();
 };
 
 /* Add Product */
@@ -401,8 +405,8 @@ export const addProduct = async (productData: Omit<Product, "id">): Promise<Prod
           rating: Number(data.rating || 4.8),
           specs: data.specs || productData.specs,
         };
-        const current = getLocalProducts();
-        saveLocalProducts([newProduct, ...current]);
+        const current = await getLocalProducts();
+        await saveLocalProducts([newProduct, ...current]);
         return newProduct;
       }
     } catch (err) {
@@ -411,7 +415,7 @@ export const addProduct = async (productData: Omit<Product, "id">): Promise<Prod
   }
 
   // Local fallback
-  const current = getLocalProducts();
+  const current = await getLocalProducts();
   const maxId = current.reduce((max, p) => (p.id > max ? p.id : max), 0);
   const newProduct: Product = {
     ...productData,
@@ -419,7 +423,7 @@ export const addProduct = async (productData: Omit<Product, "id">): Promise<Prod
     image: primaryImage,
     images: imagesArray,
   };
-  saveLocalProducts([newProduct, ...current]);
+  await saveLocalProducts([newProduct, ...current]);
   return newProduct;
 };
 
@@ -459,9 +463,9 @@ export const updateProduct = async (product: Product): Promise<Product> => {
   }
 
   // Local fallback & state sync
-  const current = getLocalProducts();
+  const current = await getLocalProducts();
   const updated = current.map((p) => (p.id === product.id ? updatedProduct : p));
-  saveLocalProducts(updated);
+  await saveLocalProducts(updated);
   return updatedProduct;
 };
 
@@ -479,9 +483,9 @@ export const deleteProduct = async (id: number): Promise<boolean> => {
   }
 
   // Local fallback & state sync
-  const current = getLocalProducts();
+  const current = await getLocalProducts();
   const filtered = current.filter((p) => p.id !== id);
-  saveLocalProducts(filtered);
+  await saveLocalProducts(filtered);
   return true;
 };
 
