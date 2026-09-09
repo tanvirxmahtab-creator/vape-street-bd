@@ -268,15 +268,34 @@ export const initialSeedProducts: Product[] = [
   },
 ];
 
+/* Helper to clear local products cache */
+export const clearProductCache = async () => {
+  try {
+    await del(STORAGE_KEY);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  } catch (e) {
+    console.error("Failed to clear product cache:", e);
+  }
+};
+
 /* Helper to get local products */
 export const getLocalProducts = async (): Promise<Product[]> => {
   try {
-    // Clear old localStorage if it exists to free up space
     if (typeof window !== "undefined" && localStorage.getItem(STORAGE_KEY)) {
       localStorage.removeItem(STORAGE_KEY);
     }
     const saved = await get(STORAGE_KEY);
     if (saved && Array.isArray(saved) && saved.length > 0) {
+      // Check if saved items contain old fake seed products (e.g. Obsidian Pod Pro)
+      const hasOldSeedData = saved.some((p: any) => p.name === "Obsidian Pod Pro" || p.name === "Nebula Pod Mini");
+      if (hasOldSeedData && isSupabaseConfigured) {
+        // Purge old fake seed cache!
+        await clearProductCache();
+        return [];
+      }
+
       return saved.map((p: any) => ({
         ...p,
         images: p.images && Array.isArray(p.images) && p.images.length > 0 ? p.images : [p.image || "/shop-logo.png"],
@@ -285,8 +304,14 @@ export const getLocalProducts = async (): Promise<Product[]> => {
   } catch (e) {
     console.error("Failed to parse local products storage", e);
   }
-  await set(STORAGE_KEY, initialSeedProducts);
-  return initialSeedProducts;
+
+  // Only use seed products as absolute fallback if Supabase is NOT configured at all
+  if (!isSupabaseConfigured) {
+    await set(STORAGE_KEY, initialSeedProducts);
+    return initialSeedProducts;
+  }
+
+  return [];
 };
 
 /* Helper to save local products */
@@ -298,7 +323,7 @@ export const saveLocalProducts = async (products: Product[]) => {
   }
 };
 
-/* Fetch Products (Supabase with Local Fallback) */
+/* Fetch Products (Supabase as primary source of truth) */
 export const fetchProducts = async (): Promise<Product[]> => {
   if (supabase) {
     try {
@@ -308,11 +333,11 @@ export const fetchProducts = async (): Promise<Product[]> => {
         .order("id", { ascending: true });
 
       if (error) {
-        console.warn("Supabase fetch error, falling back to local storage:", error.message);
+        console.warn("Supabase fetch error, using local cache:", error.message);
         return await getLocalProducts();
       }
 
-      if (data && data.length > 0) {
+      if (data) {
         const formatted: Product[] = data.map((item) => {
           let imgs: string[] = [];
           if (item.images) {
@@ -339,11 +364,13 @@ export const fetchProducts = async (): Promise<Product[]> => {
             specs: item.specs || undefined,
           };
         });
+
+        // Always save fresh live products to IndexedDB cache
         await saveLocalProducts(formatted);
         return formatted;
       }
     } catch (err) {
-      console.warn("Supabase fetch failed, using local storage fallback:", err);
+      console.warn("Supabase fetch failed, using local fallback:", err);
     }
   }
 
@@ -391,8 +418,8 @@ export const addProduct = async (productData: Omit<Product, "id">): Promise<Prod
           rating: Number(data.rating || 4.8),
           specs: data.specs || productData.specs,
         };
-        const current = await getLocalProducts();
-        await saveLocalProducts([newProduct, ...current]);
+        // Re-fetch all products to keep cache 100% in sync
+        await fetchProducts();
         return newProduct;
       }
     } catch (err) {
@@ -448,10 +475,8 @@ export const updateProduct = async (product: Product): Promise<Product> => {
     }
   }
 
-  // Local fallback & state sync
-  const current = await getLocalProducts();
-  const updated = current.map((p) => (p.id === product.id ? updatedProduct : p));
-  await saveLocalProducts(updated);
+  // Re-fetch all products to keep cache 100% in sync
+  await fetchProducts();
   return updatedProduct;
 };
 
@@ -468,10 +493,8 @@ export const deleteProduct = async (id: number): Promise<boolean> => {
     }
   }
 
-  // Local fallback & state sync
-  const current = await getLocalProducts();
-  const filtered = current.filter((p) => p.id !== id);
-  await saveLocalProducts(filtered);
+  // Re-fetch all products to keep cache 100% in sync
+  await fetchProducts();
   return true;
 };
 

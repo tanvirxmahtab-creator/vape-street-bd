@@ -223,6 +223,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       setProductsList((prev) => [created, ...prev]);
     }
 
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("vape_street_products_updated"));
+    }
+
     setSaveLoading(false);
     setIsModalOpen(false);
   };
@@ -233,6 +237,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setSaveLoading(true);
     await deleteProduct(isDeleting.id);
     setProductsList((prev) => prev.filter((p) => p.id !== isDeleting.id));
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("vape_street_products_updated"));
+    }
+
     setSaveLoading(false);
     setIsDeleting(null);
   };

@@ -185,7 +185,11 @@ const ProductsSection = ({ onSelectProduct }: { onSelectProduct?: (product: Prod
   useEffect(() => {
     loadProducts();
     window.addEventListener("focus", loadProducts);
-    return () => window.removeEventListener("focus", loadProducts);
+    window.addEventListener("vape_street_products_updated", loadProducts);
+    return () => {
+      window.removeEventListener("focus", loadProducts);
+      window.removeEventListener("vape_street_products_updated", loadProducts);
+    };
   }, []);
 
   // Filtered categories to render

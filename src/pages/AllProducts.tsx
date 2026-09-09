@@ -59,6 +59,13 @@ export default function AllProductsPage({
     };
     loadData();
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+
+    window.addEventListener("focus", loadData);
+    window.addEventListener("vape_street_products_updated", loadData);
+    return () => {
+      window.removeEventListener("focus", loadData);
+      window.removeEventListener("vape_street_products_updated", loadData);
+    };
   }, []);
 
   const handleResetFilters = () => {

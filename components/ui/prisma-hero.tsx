@@ -71,30 +71,68 @@ const PrismaHero = ({
 
   const navItems = ["Our story", "Collective", "Workshops", "Programs", "Inquiries"];
 
-  // 1. Preload 480 WebP frames of the scroll animation
+  // 1. Throttled batch preloading of 480 WebP frames to prevent network bloat & JS thread freezing
   useEffect(() => {
-    const preloadedImages: HTMLImageElement[] = [];
-    let loadedCount = 0;
     const frameCount = 480;
+    const preloadedImages: HTMLImageElement[] = new Array(frameCount);
+    imagesRef.current = preloadedImages;
 
-    for (let i = 1; i <= frameCount; i++) {
+    let isCancelled = false;
+
+    // Safety timeout: Ensure page scroll is NEVER permanently locked
+    const safetyTimer = setTimeout(() => {
+      if (!isCancelled) setImagesLoaded(true);
+    }, 1200);
+
+    // Step A: Load initial key frames (first 15 frames) for immediate display
+    let initialCount = 0;
+    const initialBatchSize = 15;
+
+    for (let i = 1; i <= initialBatchSize; i++) {
       const img = new Image();
       img.src = `/scroll-frames/frame_${String(i).padStart(3, "0")}.webp`;
       img.onload = () => {
-        loadedCount++;
-        if (loadedCount === frameCount) {
+        if (isCancelled) return;
+        initialCount++;
+        if (i === 1) drawImage(0);
+        if (initialCount >= Math.min(initialBatchSize, 5)) {
           setImagesLoaded(true);
         }
       };
       img.onerror = () => {
-        loadedCount++;
-        if (loadedCount === frameCount) {
-          setImagesLoaded(true);
-        }
+        if (isCancelled) return;
+        initialCount++;
+        if (initialCount >= 5) setImagesLoaded(true);
       };
-      preloadedImages.push(img);
+      preloadedImages[i - 1] = img;
     }
-    imagesRef.current = preloadedImages;
+
+    // Step B: Load remaining frames in background chunks of 20 to prevent memory spikes & lag
+    let currentFrame = initialBatchSize + 1;
+    const loadNextChunk = () => {
+      if (isCancelled || currentFrame > frameCount) return;
+      const chunkSize = 20;
+      const endFrame = Math.min(currentFrame + chunkSize, frameCount + 1);
+
+      for (let i = currentFrame; i < endFrame; i++) {
+        const img = new Image();
+        img.src = `/scroll-frames/frame_${String(i).padStart(3, "0")}.webp`;
+        preloadedImages[i - 1] = img;
+      }
+
+      currentFrame = endFrame;
+      if (currentFrame <= frameCount) {
+        setTimeout(loadNextChunk, 40);
+      }
+    };
+
+    const chunkTimer = setTimeout(loadNextChunk, 200);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(safetyTimer);
+      clearTimeout(chunkTimer);
+    };
   }, []);
 
   // 2. Control Entrance reveal timelines & scroll lock (Triggered when isLoaderFinished is true)
@@ -124,6 +162,7 @@ const PrismaHero = ({
     const revealTimeout = setTimeout(() => {
       setStart(true); // 2.6s: Elements animate in
       setIntroDone(true);
+      document.body.style.overflow = ""; // Always restore scroll after intro
     }, 2600);
 
     return () => {
@@ -133,14 +172,12 @@ const PrismaHero = ({
     };
   }, [isLoaderFinished]);
 
-  // 3. Unlock scroll once intro is complete and images are fully loaded
+  // 3. Unlock scroll once intro is complete
   useEffect(() => {
-    if (introDone && imagesLoaded) {
+    if (introDone) {
       document.body.style.overflow = "";
-    } else {
-      document.body.style.overflow = "hidden";
     }
-  }, [introDone, imagesLoaded]);
+  }, [introDone]);
 
   // Canvas cover drawing helper
   const drawImage = (index: number) => {
