@@ -2,24 +2,10 @@ import { createClient } from "@supabase/supabase-js";
 import { Product } from "@/components/ui/products-section";
 import { get, set, del } from "idb-keyval";
 
-const getEnvVar = (key: string): string => {
-  if (typeof process !== "undefined" && process.env) {
-    if (process.env[key]) return process.env[key] as string;
-    const nextKey = `NEXT_PUBLIC_${key.replace("VITE_", "")}`;
-    if (process.env[nextKey]) return process.env[nextKey] as string;
-  }
-  try {
-    // @ts-ignore
-    if (typeof import.meta !== "undefined" && import.meta.env) {
-      // @ts-ignore
-      return import.meta.env[key] || "";
-    }
-  } catch (e) {}
-  return "";
-};
-
-const supabaseUrl = getEnvVar("VITE_SUPABASE_URL");
-const supabaseAnonKey = getEnvVar("VITE_SUPABASE_ANON_KEY");
+// Next.js requires DIRECT references to process.env.NEXT_PUBLIC_* for build-time inlining.
+// Dynamic property access (e.g. process.env[variable]) will NOT be replaced.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
