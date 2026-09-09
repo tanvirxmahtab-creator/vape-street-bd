@@ -396,10 +396,11 @@ export const addProduct = async (productData: Omit<Product, "id">): Promise<Prod
           original_price: productData.originalPrice,
           description: productData.description,
           image: primaryImage,
-          images: imagesArray,
+          // TODO: Uncomment these once you run the ALTER TABLE sql migrations!
+          // images: imagesArray,
           badge: productData.badge,
           rating: productData.rating,
-          specs: productData.specs,
+          // specs: productData.specs,
         })
         .select()
         .single();
@@ -460,10 +461,11 @@ export const updateProduct = async (product: Product): Promise<Product> => {
           original_price: product.originalPrice,
           description: product.description,
           image: primaryImage,
-          images: imagesArray,
+          // TODO: Uncomment these once you run the ALTER TABLE sql migrations!
+          // images: imagesArray,
           badge: product.badge,
           rating: product.rating,
-          specs: product.specs,
+          // specs: product.specs,
         })
         .eq("id", product.id);
 
