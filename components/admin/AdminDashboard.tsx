@@ -38,6 +38,7 @@ import {
   deleteProduct,
   uploadProductImage,
   isSupabaseConfigured,
+  supabase,
 } from "@/src/lib/supabase";
 
 interface AdminDashboardProps {
@@ -53,6 +54,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+
+  /* Feedback Toast State */
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  /* Logout Handler */
+  const handleLogoutAction = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    sessionStorage.removeItem("vape_street_admin_auth");
+    localStorage.removeItem("vape_street_admin_user");
+    onLogout();
+  };
 
   /* Modal States */
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -167,8 +181,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         nextImgs[index] = imageUrl;
         return { ...prev, images: nextImgs };
       });
-    } catch (err) {
+      setFeedback({ type: "success", message: "Image uploaded successfully to Supabase Storage!" });
+    } catch (err: any) {
       console.error("Image upload failed", err);
+      setFeedback({ type: "error", message: `Image upload failed: ${err?.message || "Unknown error"}` });
     } finally {
       setUploadingSlot(null);
     }
@@ -187,6 +203,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaveLoading(true);
+    setFeedback(null);
 
     const priceNum = parseFloat(formData.price) || 0;
     const origPriceNum = formData.originalPrice ? parseFloat(formData.originalPrice) : null;
@@ -215,35 +232,51 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       },
     };
 
-    if (editingProduct) {
-      const updated = await updateProduct({ ...payload, id: editingProduct.id });
-      setProductsList((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-    } else {
-      const created = await addProduct(payload);
-      setProductsList((prev) => [created, ...prev]);
-    }
+    try {
+      if (editingProduct) {
+        const updated = await updateProduct({ ...payload, id: editingProduct.id });
+        setProductsList((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+        setFeedback({ type: "success", message: `Product "${formData.name}" updated successfully!` });
+      } else {
+        const created = await addProduct(payload);
+        setProductsList((prev) => [created, ...prev]);
+        setFeedback({ type: "success", message: `Product "${formData.name}" published successfully!` });
+      }
 
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new Event("vape_street_products_updated"));
-    }
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("vape_street_products_updated"));
+      }
 
-    setSaveLoading(false);
-    setIsModalOpen(false);
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Save product error:", err);
+      setFeedback({ type: "error", message: `Failed to save product: ${err?.message || "Check Supabase permissions"}` });
+    } finally {
+      setSaveLoading(false);
+    }
   };
 
   /* Confirm Delete */
   const handleDeleteConfirm = async () => {
     if (!isDeleting) return;
     setSaveLoading(true);
-    await deleteProduct(isDeleting.id);
-    setProductsList((prev) => prev.filter((p) => p.id !== isDeleting.id));
+    setFeedback(null);
 
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new Event("vape_street_products_updated"));
+    try {
+      await deleteProduct(isDeleting.id);
+      setProductsList((prev) => prev.filter((p) => p.id !== isDeleting.id));
+      setFeedback({ type: "success", message: `Product "${isDeleting.name}" deleted successfully.` });
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("vape_street_products_updated"));
+      }
+    } catch (err: any) {
+      console.error("Delete product error:", err);
+      setFeedback({ type: "error", message: `Failed to delete product: ${err?.message || "Check permissions"}` });
+    } finally {
+      setSaveLoading(false);
+      setIsDeleting(null);
     }
-
-    setSaveLoading(false);
-    setIsDeleting(null);
   };
 
   /* Preview Product Construction */
@@ -336,7 +369,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             </a>
 
             <button
-              onClick={onLogout}
+              onClick={handleLogoutAction}
               className="inline-flex items-center gap-1.5 rounded-full border border-red-500/20 bg-red-500/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-red-400 transition-colors hover:bg-red-500/20 cursor-pointer"
             >
               <LogOut className="h-3.5 w-3.5" />
@@ -345,6 +378,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           </div>
         </div>
       </header>
+
+      {/* Feedback Toast Notification Banner */}
+      <AnimatePresence>
+        {feedback && (
+          <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 md:px-10">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className={`flex items-center justify-between rounded-xl border p-4 text-xs font-semibold shadow-lg ${
+                feedback.type === "success"
+                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                  : "border-red-500/40 bg-red-500/10 text-red-300"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                {feedback.type === "success" ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-red-400" />
+                )}
+                <span>{feedback.message}</span>
+              </div>
+              <button
+                onClick={() => setFeedback(null)}
+                className="text-accent/60 hover:text-accent cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Main Container */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 md:px-10">

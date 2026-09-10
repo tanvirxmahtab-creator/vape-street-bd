@@ -1,5 +1,5 @@
 -- ====================================================
--- VAPE STREET BD - SAFE SUPABASE INITIALIZATION SCHEMA
+-- VAPE STREET BD - SECURE SUPABASE SCHEMAS & RLS POLICIES
 -- ====================================================
 
 -- 1. Create Products Table
@@ -21,24 +21,31 @@ CREATE TABLE IF NOT EXISTS public.products (
 -- Enable RLS (Row Level Security)
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
--- Drop Policies if already exist to prevent "policy already exists" errors
+-- Drop Policies if already exist to prevent duplicate policy errors
 DROP POLICY IF EXISTS "Allow public read access to products" ON public.products;
 DROP POLICY IF EXISTS "Allow public insert to products" ON public.products;
 DROP POLICY IF EXISTS "Allow public update to products" ON public.products;
 DROP POLICY IF EXISTS "Allow public delete to products" ON public.products;
+DROP POLICY IF EXISTS "Allow authenticated insert to products" ON public.products;
+DROP POLICY IF EXISTS "Allow authenticated update to products" ON public.products;
+DROP POLICY IF EXISTS "Allow authenticated delete to products" ON public.products;
 
--- Create Policies for Public Access
+-- Create Security Policies: Public Read / Authenticated Admin Write
 CREATE POLICY "Allow public read access to products" 
   ON public.products FOR SELECT USING (true);
 
-CREATE POLICY "Allow public insert to products" 
-  ON public.products FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow authenticated insert to products" 
+  ON public.products FOR INSERT 
+  WITH CHECK (auth.role() = 'authenticated');
 
-CREATE POLICY "Allow public update to products" 
-  ON public.products FOR UPDATE USING (true);
+CREATE POLICY "Allow authenticated update to products" 
+  ON public.products FOR UPDATE 
+  USING (auth.role() = 'authenticated');
 
-CREATE POLICY "Allow public delete to products" 
-  ON public.products FOR DELETE USING (true);
+CREATE POLICY "Allow authenticated delete to products" 
+  ON public.products FOR DELETE 
+  USING (auth.role() = 'authenticated');
+
 
 -- 2. Create Site Content Table
 CREATE TABLE IF NOT EXISTS public.site_content (
@@ -51,12 +58,16 @@ ALTER TABLE public.site_content ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Allow public read access to site_content" ON public.site_content;
 DROP POLICY IF EXISTS "Allow public upsert to site_content" ON public.site_content;
+DROP POLICY IF EXISTS "Allow authenticated write access to site_content" ON public.site_content;
 
 CREATE POLICY "Allow public read access to site_content" 
   ON public.site_content FOR SELECT USING (true);
 
-CREATE POLICY "Allow public upsert to site_content" 
-  ON public.site_content FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow authenticated write access to site_content" 
+  ON public.site_content FOR ALL 
+  USING (auth.role() = 'authenticated') 
+  WITH CHECK (auth.role() = 'authenticated');
+
 
 -- 3. Create Storage Bucket for Product Images
 INSERT INTO storage.buckets (id, name, public) 
@@ -68,20 +79,23 @@ DROP POLICY IF EXISTS "Public Read Access for Product Images" ON storage.objects
 DROP POLICY IF EXISTS "Public Upload Access for Product Images" ON storage.objects;
 DROP POLICY IF EXISTS "Public Update Access for Product Images" ON storage.objects;
 DROP POLICY IF EXISTS "Public Delete Access for Product Images" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated Upload Access for Product Images" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated Update Access for Product Images" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated Delete Access for Product Images" ON storage.objects;
 
--- Create Storage Policies for Public Read & Upload Access
+-- Create Storage Policies: Public Read / Authenticated Write Access
 CREATE POLICY "Public Read Access for Product Images"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'product-images');
 
-CREATE POLICY "Public Upload Access for Product Images"
+CREATE POLICY "Authenticated Upload Access for Product Images"
   ON storage.objects FOR INSERT
-  WITH CHECK (bucket_id = 'product-images');
+  WITH CHECK (bucket_id = 'product-images' AND auth.role() = 'authenticated');
 
-CREATE POLICY "Public Update Access for Product Images"
+CREATE POLICY "Authenticated Update Access for Product Images"
   ON storage.objects FOR UPDATE
-  USING (bucket_id = 'product-images');
+  USING (bucket_id = 'product-images' AND auth.role() = 'authenticated');
 
-CREATE POLICY "Public Delete Access for Product Images"
+CREATE POLICY "Authenticated Delete Access for Product Images"
   ON storage.objects FOR DELETE
-  USING (bucket_id = 'product-images');
+  USING (bucket_id = 'product-images' AND auth.role() = 'authenticated');

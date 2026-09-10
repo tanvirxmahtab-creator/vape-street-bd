@@ -11,13 +11,15 @@ import ContactUsPage from "@/src/pages/ContactUs";
 import AboutUsPage from "@/src/pages/AboutUs";
 import { ProductsSection, Product } from "@/components/ui/products-section";
 import { ProductDetailPage } from "@/components/ui/product-detail";
-import { AdminLogin } from "@/components/admin/AdminLogin";
-import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { getProducts } from "@/src/data/products";
 import { TheaterLoader } from "@/components/ui/TheaterLoader";
 import { AgeModal } from "@/components/ui/AgeModal";
 import { Navbar } from "@/components/ui/Navbar";
 import { Footer } from "@/components/ui/Footer";
-import { fetchProducts } from "@/src/lib/supabase";
+
+import { AdminLogin } from "@/components/admin/AdminLogin";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { supabase } from "@/src/lib/supabase";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -26,10 +28,10 @@ if (typeof window !== "undefined") {
 export default function App() {
   const [isMounted, setIsMounted] = useState(false);
   const [pathname, setPathname] = useState("/");
-  const [isAdminAuth, setIsAdminAuth] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isLoaderFinished, setIsLoaderFinished] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState<boolean>(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
 
   const handleAgeVerify = () => {
     if (typeof window !== "undefined") {
@@ -50,6 +52,20 @@ export default function App() {
     }
   };
 
+  const checkAdminAuth = async () => {
+    if (typeof window !== "undefined") {
+      if (supabase) {
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          setIsAdminAuthenticated(true);
+          return;
+        }
+      }
+      const token = sessionStorage.getItem("vape_street_admin_auth");
+      setIsAdminAuthenticated(Boolean(token));
+    }
+  };
+
   useEffect(() => {
     setIsMounted(true);
     if (typeof window !== "undefined") {
@@ -58,22 +74,23 @@ export default function App() {
       setPathname(window.location.hash.replace("#", "") || "/");
     }
 
-    // Check initial admin auth state using token pattern
-    const token = typeof window !== "undefined" ? sessionStorage.getItem("vape_street_admin_auth") : null;
-    const isAuth = token ? token.startsWith("vst_") && token.length > 10 : false;
-    setIsAdminAuth(isAuth);
+    checkAdminAuth();
 
     const handleLocationChange = async () => {
       const currentPath = window.location.hash.replace("#", "") || "/";
       setPathname(currentPath);
       scrollToTopInstant();
 
+      if (currentPath === "/admin") {
+        await checkAdminAuth();
+      }
+
       // Check if path is /product/:id
       if (currentPath.toLowerCase().startsWith("/product/")) {
         const idStr = currentPath.split("/")[2];
         const id = parseInt(idStr, 10);
         if (!isNaN(id)) {
-          const allProducts = await fetchProducts();
+          const allProducts = await getProducts();
           const found = allProducts.find((p) => p.id === id);
           if (found) {
             setSelectedProduct(found);
@@ -91,12 +108,15 @@ export default function App() {
   }, []);
 
   const handleLoginSuccess = () => {
-    setIsAdminAuth(true);
+    setIsAdminAuthenticated(true);
+    window.location.hash = "/admin";
+    setPathname("/admin");
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem("vape_street_admin_auth");
-    setIsAdminAuth(false);
+    setIsAdminAuthenticated(false);
+    window.location.hash = "/";
+    setPathname("/");
   };
 
   const handleSelectProduct = (product: Product) => {
@@ -141,7 +161,7 @@ export default function App() {
     scrollToTopInstant();
   };
 
-  const isAdminRoute = pathname.toLowerCase().startsWith("/admin");
+  const isAdminRoute = pathname === "/admin";
 
   // Key for page transition rendering
   const activeRouteKey = selectedProduct ? `product-${selectedProduct.id}` : pathname;
@@ -150,10 +170,11 @@ export default function App() {
   const renderContent = () => {
     // Route: /admin
     if (isAdminRoute) {
-      if (!isAdminAuth) {
-        return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
-      }
-      return <AdminDashboard onLogout={handleLogout} />;
+      return isAdminAuthenticated ? (
+        <AdminDashboard onLogout={handleLogout} />
+      ) : (
+        <AdminLogin onLoginSuccess={handleLoginSuccess} />
+      );
     }
 
     // Route: /product/:id
@@ -214,12 +235,12 @@ export default function App() {
   return (
     <>
       {/* Age Verification Modal */}
-      {!isAgeVerified && (
+      {!isAdminRoute && !isAgeVerified && (
         <AgeModal onVerify={handleAgeVerify} />
       )}
 
       {/* Theater Loader animation (starts after age is verified) */}
-      {isAgeVerified && (
+      {!isAdminRoute && isAgeVerified && (
         <TheaterLoader onLoaded={() => setIsLoaderFinished(true)} />
       )}
       
@@ -256,7 +277,6 @@ export default function App() {
           onNavigateProducts={handleNavigateProducts}
           onNavigateAbout={handleNavigateAbout}
           onNavigateContact={handleNavigateContact}
-          onNavigateAdmin={handleNavigateAdmin}
         />
       )}
     </>

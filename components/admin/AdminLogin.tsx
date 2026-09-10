@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Lock, User, ShieldCheck, ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
 
+import { supabase, isSupabaseConfigured } from "@/src/lib/supabase";
+
 interface AdminLoginProps {
   onLoginSuccess: () => void;
 }
@@ -20,29 +22,50 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
     setError("");
     setLoading(true);
 
-    const cleanUsername = username.trim().toLowerCase();
+    const cleanUsername = username.trim();
     const cleanPassword = password.trim();
 
     try {
+      if (supabase && isSupabaseConfigured) {
+        const emailInput = cleanUsername.includes("@") ? cleanUsername : `${cleanUsername}@vapestreetbd.com`;
+        const { data, error: authError } = await supabase.auth.signInWithPassword({
+          email: emailInput,
+          password: cleanPassword,
+        });
+
+        if (authError) {
+          setError(authError.message || "Invalid credentials.");
+          setLoading(false);
+          return;
+        }
+
+        if (data.session) {
+          sessionStorage.setItem("vape_street_admin_auth", data.session.access_token);
+          localStorage.setItem("vape_street_admin_user", data.user.email || cleanUsername);
+          onLoginSuccess();
+          return;
+        }
+      }
+
+      // Fallback local verification if Supabase env vars are not configured
       const msgBuffer = new TextEncoder().encode(cleanPassword);
       const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 
-      const isUserValid = cleanUsername === "admin" || cleanUsername === "pallab";
-      const isPassValid = hashHex === "4f434ecb07ecc5951409d43daac81a4893da947f1cb9b16c5d66bf72c17caa1d"; // hash of pallab72
+      const isUserValid = cleanUsername.toLowerCase() === "admin" || cleanUsername.toLowerCase() === "pallab";
+      const isPassValid = hashHex === "4f434ecb07ecc5951409d43daac81a4893da947f1cb9b16c5d66bf72c17caa1d";
 
       if (isUserValid && isPassValid) {
-        // Generate a pseudo-random token instead of simple "true"
         const sessionToken = "vst_" + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
         sessionStorage.setItem("vape_street_admin_auth", sessionToken);
         localStorage.setItem("vape_street_admin_user", cleanUsername);
         onLoginSuccess();
       } else {
-        setError("Invalid username or password. Please try again.");
+        setError("Invalid credentials. Please try again.");
       }
-    } catch (err) {
-      setError("Authentication error. Please try again.");
+    } catch (err: any) {
+      setError(err?.message || "Authentication error. Please try again.");
     } finally {
       setLoading(false);
     }

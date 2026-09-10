@@ -396,16 +396,20 @@ export const addProduct = async (productData: Omit<Product, "id">): Promise<Prod
           original_price: productData.originalPrice,
           description: productData.description,
           image: primaryImage,
-          // TODO: Uncomment these once you run the ALTER TABLE sql migrations!
-          // images: imagesArray,
+          images: imagesArray,
           badge: productData.badge,
           rating: productData.rating,
-          // specs: productData.specs,
+          specs: productData.specs,
         })
         .select()
         .single();
 
-      if (!error && data) {
+      if (error) {
+        console.error("Supabase insert error:", error.message);
+        throw new Error(error.message);
+      }
+
+      if (data) {
         const newProduct: Product = {
           id: data.id,
           name: data.name,
@@ -419,12 +423,14 @@ export const addProduct = async (productData: Omit<Product, "id">): Promise<Prod
           rating: Number(data.rating || 4.8),
           specs: data.specs || productData.specs,
         };
-        // Re-fetch all products to keep cache 100% in sync
         await fetchProducts();
         return newProduct;
       }
-    } catch (err) {
-      console.warn("Supabase add failed, using local fallback:", err);
+    } catch (err: any) {
+      console.warn("Supabase add error:", err?.message || err);
+      if (isSupabaseConfigured) {
+        throw err;
+      }
     }
   }
 
@@ -461,19 +467,22 @@ export const updateProduct = async (product: Product): Promise<Product> => {
           original_price: product.originalPrice,
           description: product.description,
           image: primaryImage,
-          // TODO: Uncomment these once you run the ALTER TABLE sql migrations!
-          // images: imagesArray,
+          images: imagesArray,
           badge: product.badge,
           rating: product.rating,
-          // specs: product.specs,
+          specs: product.specs,
         })
         .eq("id", product.id);
 
       if (error) {
-        console.warn("Supabase update error:", error.message);
+        console.error("Supabase update error:", error.message);
+        throw new Error(error.message);
       }
-    } catch (err) {
-      console.warn("Supabase update exception:", err);
+    } catch (err: any) {
+      console.warn("Supabase update exception:", err?.message || err);
+      if (isSupabaseConfigured) {
+        throw err;
+      }
     }
   }
 
@@ -488,10 +497,14 @@ export const deleteProduct = async (id: number): Promise<boolean> => {
     try {
       const { error } = await supabase.from("products").delete().eq("id", id);
       if (error) {
-        console.warn("Supabase delete error:", error.message);
+        console.error("Supabase delete error:", error.message);
+        throw new Error(error.message);
       }
-    } catch (err) {
-      console.warn("Supabase delete exception:", err);
+    } catch (err: any) {
+      console.warn("Supabase delete exception:", err?.message || err);
+      if (isSupabaseConfigured) {
+        throw err;
+      }
     }
   }
 
@@ -518,10 +531,16 @@ export const uploadProductImage = async (file: File): Promise<string> => {
           return data.publicUrl;
         }
       } else {
-        console.warn("Supabase storage upload error:", uploadError.message);
+        console.error("Supabase storage upload error:", uploadError.message);
+        if (isSupabaseConfigured) {
+          throw new Error(uploadError.message);
+        }
       }
-    } catch (err) {
-      console.warn("Supabase storage exception:", err);
+    } catch (err: any) {
+      console.warn("Supabase storage exception:", err?.message || err);
+      if (isSupabaseConfigured) {
+        throw err;
+      }
     }
   }
 

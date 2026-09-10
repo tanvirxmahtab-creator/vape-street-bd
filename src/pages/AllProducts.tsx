@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Product, ProductCard } from "@/components/ui/products-section";
-import { fetchProducts } from "@/src/lib/supabase";
+import { getProducts } from "@/src/data/products";
 import { 
   Search, 
   Filter, 
@@ -48,7 +48,7 @@ export default function AllProductsPage({
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      const data = await fetchProducts();
+      const data = await getProducts();
       setProducts(data);
 
       if (data.length > 0) {

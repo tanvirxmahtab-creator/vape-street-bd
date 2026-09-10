@@ -2,5 +2,5 @@
   "name": "Prisma Hero",
   "description": "An elegant, premium cinematic hero header component featuring video backgrounds, smooth typographic word animations, and modular motion segments.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

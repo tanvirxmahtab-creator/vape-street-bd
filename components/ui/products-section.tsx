@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { ShoppingBag, Star, Zap, Layers, Sparkles, Flame, Droplets, ShieldCheck, ArrowRight } from "lucide-react";
-import { fetchProducts } from "@/src/lib/supabase";
+import { getProducts } from "@/src/data/products";
 
 /* ---- Product Type ---- */
 export interface ProductSpecs {
@@ -178,7 +178,7 @@ const ProductsSection = ({ onSelectProduct }: { onSelectProduct?: (product: Prod
   const headingInView = useInView(headingRef, { once: true, margin: "-100px" });
 
   const loadProducts = async () => {
-    const data = await fetchProducts();
+    const data = await getProducts();
     setProductsList(data);
   };
 
